@@ -35,6 +35,7 @@ import { LoggerFactory } from './utils/LoggerFactory'
 import { convertStreamMessageToMessage, Message } from './Message'
 import { ErrorCode } from './HttpUtil'
 import { omit } from 'lodash'
+import { Persistence, PersistenceInjectionToken } from './utils/persistence/Persistence'
 
 /**
  * The main API used to interact with Streamr.
@@ -63,8 +64,9 @@ export class StreamrClient {
 
     constructor(
         config: StreamrClientConfig = {},
+        persistence?: Persistence<string, string>,
         /** @internal */
-        parentContainer = rootContainer
+        parentContainer = rootContainer, 
     ) {
         const strictConfig = createStrictConfig(config)
         const authentication = createAuthentication(strictConfig)
@@ -72,6 +74,7 @@ export class StreamrClient {
         const container = parentContainer.createChildContainer()
         container.register(AuthenticationInjectionToken, { useValue: authentication })
         container.register(ConfigInjectionToken, { useValue: strictConfig })
+        container.register(PersistenceInjectionToken, { useValue: persistence || null })        
         this.id = strictConfig.id
         this.config = strictConfig
         this.node = container.resolve<NetworkNodeFacade>(NetworkNodeFacade)

@@ -4,7 +4,7 @@ import { GroupKey } from './GroupKey'
 import { StreamID } from '@streamr/protocol'
 import { Authentication, AuthenticationInjectionToken } from '../Authentication'
 import { StreamrClientEventEmitter } from '../events'
-import { Persistence } from '../utils/persistence/Persistence'
+import { Persistence, PersistenceInjectionToken } from '../utils/persistence/Persistence'
 import ServerPersistence from '../utils/persistence/ServerPersistence'
 import { pOnce } from '../utils/promises'
 import { LoggerFactory } from '../utils/LoggerFactory'
@@ -55,14 +55,15 @@ export class GroupKeyStore {
     constructor(
         @inject(LoggerFactory) loggerFactory: LoggerFactory,
         @inject(AuthenticationInjectionToken) authentication: Authentication,
-        @inject(StreamrClientEventEmitter) eventEmitter: StreamrClientEventEmitter
+        @inject(StreamrClientEventEmitter) eventEmitter: StreamrClientEventEmitter,
+        @inject(PersistenceInjectionToken) persistence: Persistence<string, string>,
     ) {
         this.authentication = authentication
         this.eventEmitter = eventEmitter
         this.logger = loggerFactory.createLogger(module)
         this.ensureInitialized = pOnce(async () => {
             const clientId = await this.authentication.getAddress()
-            this.persistence = new ServerPersistence({
+            this.persistence = persistence || new ServerPersistence({
                 loggerFactory,
                 tableName: 'GroupKeys',
                 valueColumnName: 'groupKey',
